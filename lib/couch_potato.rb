@@ -7,6 +7,7 @@ require 'json/add/rails'
 require 'ostruct'
 
 module CouchPotato
+#  CouchPotato::Config = OpenStruct.new
   Config = OpenStruct.new
 end
 
