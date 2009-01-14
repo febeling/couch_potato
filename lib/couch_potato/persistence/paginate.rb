@@ -1,5 +1,5 @@
 require "will_paginate/collection"
-require "pp"
+
 module CouchPotato
   module Persistence
     module Pagination
@@ -9,32 +9,23 @@ module CouchPotato
       end
       
       module ClassMethods
-
-        # From will_paginate rdoc:
-        #
-        #   Array.class_eval do
-        #     def paginate(page = 1, per_page = 15)
-        #       WillPaginate::Collection.create(page, per_page, size) do |pager|
-        #         pager.replace self[pager.offset, pager.per_page].to_a
-        #       end
-        #     end
-        #   end
         def paginate(page = 1, per_page = 15, options = {})
           WillPaginate::Collection.create(page, per_page) do |pager|
             ids, total = find_page_ids_ordered_by(page, per_page, options[:keys])
             result = db.documents :include_docs => true, :keys => ids
             docs = result["rows"].map{|r| r["doc"]}
-            pager.replace(docs)
+            objects = docs.map{|doc| self.class.json_create doc }
+            pager.replace(objects)
           end
         end
 
-        def find_page_ids_ordered_by(page, per_page, order_by_attr, descending=false)
+        def find_page_ids_ordered_by(page, per_page, order_by_attr, descending=false, clazz=self)
           skip = (page - 1) * per_page
           view_parameters = {:skip => skip, :count => per_page}
           view_parameters[:descending] = descending if descending
           query = ViewQuery.new("#{self.class.name.underscore}",
                                 "ids_by_#{order_by_attr}",
-                                paginate_map_function(order_by_attr),
+                                paginate_map_function(order_by_attr, clazz),
                                 nil,
                                 nil,
                                 view_parameters)
@@ -42,9 +33,7 @@ module CouchPotato
           return result['rows'].map{|row| row['id']}, result['total_rows']
         end
 
-        def paginate_map_function(keys)
-          # map without doc to save space.
-          # include _id in key to make non-unique key ordering stable.
+        def paginate_map_function(keys, clazz)
           key_ary = []
           case keys
           when Array
@@ -54,7 +43,8 @@ module CouchPotato
           end
           key_ary << "_id"
           "function(doc) {
-              emit([#{key_ary.map{|k|"doc.#{k}"}.join(', ')}], null);
+              if(doc.ruby_class == '#{clazz.name}')
+                emit([#{key_ary.map{|k|"doc.#{k}"}.join(', ')}], null);
            }"
         end
 
