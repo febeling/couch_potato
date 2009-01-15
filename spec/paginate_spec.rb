@@ -38,10 +38,15 @@ describe CouchPotato::Persistence::Pagination, 'instantiates objects' do
     CouchPotato::Persistence.Db.delete!
     @hash_id = TestBuild.db.save({:time => '2008-01-02', :revision => "1000"})
     @object_id = TestBuild.create!({:time => '2008-01-01', :revision => "1001"})
+    @result = TestBuild.paginate(1, 1, :order => 'time')
   end
   
-  it "of the saved class" do
-    TestBuild.paginate(1, 1, :order => "time")
+  it "of the saved class, but not the other" do
+    @result.size.should == 1
+  end
+  
+  it "of the saved class, but not the other" do
+    @result.first.class.should == TestBuild
   end
 end
 

@@ -11,10 +11,11 @@ module CouchPotato
       module ClassMethods
         def paginate(page = 1, per_page = 15, options = {})
           WillPaginate::Collection.create(page, per_page) do |pager|
-            ids, total = find_page_ids_ordered_by(page, per_page, options[:order])
+            ids, total = find_page_ids_ordered_by(page, per_page, options[:order], options[:descending])
             docs = db.documents(:include_docs => true, :keys => ids)["rows"].map { |row| row["doc"] }
-            objects = docs.map { |doc| self.class.json_create doc }
+            objects = docs.map { |doc| self.json_create doc }
             pager.replace(objects)
+            pager.total_entries = total
           end
         end
 
