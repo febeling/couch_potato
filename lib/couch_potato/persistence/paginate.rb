@@ -12,9 +12,8 @@ module CouchPotato
         def paginate(page = 1, per_page = 15, options = {})
           WillPaginate::Collection.create(page, per_page) do |pager|
             ids, total = find_page_ids_ordered_by(page, per_page, options[:keys])
-            result = db.documents :include_docs => true, :keys => ids
-            docs = result["rows"].map{|r| r["doc"]}
-            objects = docs.map{|doc| self.class.json_create doc }
+            docs = db.documents(:include_docs => true, :keys => ids)["rows"].map { |row| row["doc"] }
+            objects = docs.map { |doc| self.class.json_create doc }
             pager.replace(objects)
           end
         end
@@ -45,12 +44,6 @@ module CouchPotato
           "function(doc) {
               if(doc.ruby_class == '#{clazz.name}')
                 emit([#{key_ary.map{|k|"doc.#{k}"}.join(', ')}], null);
-           }"
-        end
-
-        def map_function(key, properties) # from custom_view.rb
-          "function(doc) {
-              emit(doc.#{key}, #{properties_for_map(properties)});
            }"
         end
 
