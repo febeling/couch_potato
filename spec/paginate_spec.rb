@@ -17,19 +17,19 @@ describe CouchPotato::Persistence::Pagination, 'paginate' do
   end
 
   it "fetches a first page with length 1" do
-    TestBuild.paginate(1, 1, :keys => 'revision').length.should == 1
+    TestBuild.paginate(1, 1, :order => 'revision').length.should == 1
   end
 
   it "fetches a first page with length 1 with keys array" do
-    TestBuild.paginate(1, 1, :keys => ['time', 'revision']).length.should == 1
+    TestBuild.paginate(1, 1, :order => ['time', 'revision']).length.should == 1
   end
 
   it "fetches a second page with length 2, but finds only 1" do
-    TestBuild.paginate(2, 2, :keys => ['time', 'revision']).length.should == 1
+    TestBuild.paginate(2, 2, :order => ['time', 'revision']).length.should == 1
   end
 
   it "fetches a first page with length 2" do
-    TestBuild.paginate(1, 2, :keys => ['time', 'revision']).length.should == 2
+    TestBuild.paginate(1, 2, :order => ['time', 'revision']).length.should == 2
   end
 end
 
@@ -41,7 +41,7 @@ describe CouchPotato::Persistence::Pagination, 'instantiates objects' do
   end
   
   it "of the saved class" do
-    TestBuild.paginate(1, 1, :keys => "time")
+    TestBuild.paginate(1, 1, :order => "time")
   end
 end
 
@@ -54,10 +54,18 @@ describe CouchPotato::Persistence::Pagination, 'helper methods' do
   end
 
   it "paginate_map_function" do
-    keys = "state"
-    TestBuild.paginate_map_function(keys, String).should == "function(doc) {
+    order = :state
+    TestBuild.paginate_map_function(order, String).should == "function(doc) {
               if(doc.ruby_class == 'String')
                 emit([doc.state, doc._id], null);
+           }"
+  end
+
+  it "paginate_map_function with multiple order properties" do
+    order = [:state, :name]
+    TestBuild.paginate_map_function(order, String).should == "function(doc) {
+              if(doc.ruby_class == 'String')
+                emit([doc.state, doc.name, doc._id], null);
            }"
   end
 
