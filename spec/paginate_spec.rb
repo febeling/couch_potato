@@ -31,6 +31,14 @@ describe CouchPotato::Persistence::Pagination, 'paginate' do
   it "fetches a first page with length 2" do
     TestBuild.paginate(1, 2, :order => ['time', 'revision']).length.should == 2
   end
+
+  it "orders ascending by default" do
+    TestBuild.paginate(1, 3, :order => :revision).map{|build| build.revision }.should == ["1000", "1001", "1002"] 
+  end
+
+  it "orders descending when option :descending is true" do
+    TestBuild.paginate(1, 3, :order => :revision, :descending => true).map{|build| build.revision }.should == ["1002", "1001", "1000"] 
+  end
 end
 
 describe CouchPotato::Persistence::Pagination, 'instantiates objects' do
