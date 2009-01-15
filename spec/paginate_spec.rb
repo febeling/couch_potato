@@ -23,6 +23,14 @@ describe CouchPotato::Persistence::Pagination, 'paginate' do
   it "fetches a first page with length 1 with keys array" do
     TestBuild.paginate(1, 1, :keys => ['time', 'revision']).length.should == 1
   end
+
+  it "fetches a second page with length 2, but finds only 1" do
+    TestBuild.paginate(2, 2, :keys => ['time', 'revision']).length.should == 1
+  end
+
+  it "fetches a first page with length 2" do
+    TestBuild.paginate(1, 2, :keys => ['time', 'revision']).length.should == 2
+  end
 end
 
 describe CouchPotato::Persistence::Pagination, 'instantiates objects' do
