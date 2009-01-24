@@ -28,6 +28,14 @@ module CouchPotato
           return result['rows'].map{|row| row['id']}, result['total_rows']
         end
 
+        def type_predicate(type, attribute)
+          if type.nil?
+            ""
+          else
+            "if(doc.#{attribute} == '#{type}')"
+          end
+        end
+
         def paginate_map_function(keys, clazz)
           key_ary = []
           case keys
@@ -36,10 +44,9 @@ module CouchPotato
           else 
             key_ary << keys
           end
-          key_ary << "_id"
+          key_ary << "_id" # Assure that ordering is stable.
           "function(doc) {
-              if(doc.ruby_class == '#{clazz.name}')
-                emit([#{key_ary.map{|k|"doc.#{k}"}.join(', ')}], null);
+              #{type_predicate(clazz.nil? ? nil : clazz.name, 'ruby_class')} emit([#{key_ary.map{|k|"doc.#{k}"}.join(', ')}], null);
            }"
         end
 

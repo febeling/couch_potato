@@ -66,31 +66,50 @@ describe CouchPotato::Persistence::Pagination, 'helper methods' do
     TestBuild.create!({:state => 'success', :time => '2008-01-03', :revision => "1002"})
   end
 
-  it "paginate_map_function" do
-    order = :state
-    TestBuild.paginate_map_function(order, String).should == "function(doc) {
-              if(doc.ruby_class == 'String')
-                emit([doc.state, doc._id], null);
+  describe "paginate_map_function" do
+    it "main success case" do
+      order = :state
+      TestBuild.paginate_map_function(order, String).should == "function(doc) {
+              if(doc.ruby_class == 'String') emit([doc.state, doc._id], null);
            }"
-  end
+    end
 
-  it "paginate_map_function with multiple order properties" do
-    order = [:state, :name]
-    TestBuild.paginate_map_function(order, String).should == "function(doc) {
-              if(doc.ruby_class == 'String')
-                emit([doc.state, doc.name, doc._id], null);
+    it "with multiple order properties" do
+      order = [:state, :name]
+      TestBuild.paginate_map_function(order, String).should == "function(doc) {
+              if(doc.ruby_class == 'String') emit([doc.state, doc.name, doc._id], null);
            }"
+    end
+
+    it "without class predicate" do
+      order = [:state, :name]
+      TestBuild.paginate_map_function(order, nil).should == "function(doc) {
+               emit([doc.state, doc.name, doc._id], null);
+           }"
+    end
   end
 
-  it "can use find_page_ids_ordered_by to get ids of page docs" do
-    ids, total = TestBuild.find_page_ids_ordered_by(1, 2, :time, true, TestBuild)
-    ids.length.should == 2
-    total.should == 3
+  describe "find_page_ids_ordered_by" do
+    it "can get ids of page docs" do
+      ids, total = TestBuild.find_page_ids_ordered_by(1, 2, :time, true, TestBuild)
+      ids.length.should == 2
+      total.should == 3
+    end
+
+    it "find_page_ids_ordered_by can use more than one oreder key" do
+      ids, total = TestBuild.find_page_ids_ordered_by(1, 2, [:time, :_id], true, TestBuild)
+      ids.length.should == 2
+      total.should == 3
+    end
   end
 
-  it "find_page_ids_ordered_by can use more than one oreder key" do
-    ids, total = TestBuild.find_page_ids_ordered_by(1, 2, [:time, :_id], true, TestBuild)
-    ids.length.should == 2
-    total.should == 3
+  describe "type_predicate" do
+    it "generates if statement" do
+      TestBuild.type_predicate('String', 'ruby_class').should == "if(doc.ruby_class == 'String')"
+    end
+
+    it "generates empty string if clazz argument is nil" do
+      TestBuild.type_predicate(nil, 'ruby_class').should == ""
+    end
   end
 end
