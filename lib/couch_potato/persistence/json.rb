@@ -29,10 +29,10 @@ module CouchPotato
       end
       
       module ClassMethods
-        def json_create(json)
+        def json_create(json) # TODO test
           instance = self.new
-          instance.created_at = Time.parse(json['created_at']) 
-          instance.updated_at = Time.parse(json['updated_at'])
+          instance.created_at = Time.parse(json['created_at']) if json.key? 'created_at'
+          instance.updated_at = Time.parse(json['updated_at']) if json.key? 'updated_at'
           instance._id = json['_id']
           instance._rev = json['_rev']
           properties.each do |property|
