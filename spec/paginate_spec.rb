@@ -78,7 +78,7 @@ describe CouchPotato::Persistence::Pagination, 'instantiates objects' do
     end
     
     it "finds both type-tagged and untagged docs" do
-      @result.map{|row| row.class}.should == [Hash, Hash]
+      @result.map{|object| object.class}.should == [TestBuild, TestBuild]
       @result.size.should == 2
     end
   end

@@ -10,11 +10,12 @@ module CouchPotato
       
       module ClassMethods
         def paginate(page = 1, per_page = 15, options = {})
+          page = page.to_i
           WillPaginate::Collection.create(page, per_page) do |pager|
             clazz = if instantiate?(options) then (options[:class] || self) else nil end
             ids, total = find_page_ids_ordered_by(page, per_page, options[:order], options[:descending], clazz)
             docs = db.documents(:include_docs => true, :keys => ids)['rows'].map { |row| row['doc'] }
-            objects = docs.map { |doc| if instantiate?(options) then self.json_create(doc) else doc end }
+            objects = docs.map { |doc| self.json_create(doc) }
             pager.replace(objects)
             pager.total_entries = total
           end
@@ -24,20 +25,26 @@ module CouchPotato
           !options.key?(:class) || (options[:class] != :none && !options[:class].nil?)
         end
 
-        def find_page_ids_ordered_by(page, per_page, order_by_attr, descending, clazz)
+        def find_page_ids_ordered_by(page, per_page, order_by_attr, descending, type_tag)
           skip = (page - 1) * per_page
           view_parameters = {:skip => skip, :count => per_page}
           view_parameters[:descending] = descending if descending
-          query = ViewQuery.new("#{self.class.name.underscore}", "ids_by_#{order_by_attr}", paginate_map_function(order_by_attr, clazz, 'ruby_class'), nil, nil, view_parameters)
+          view_name = case order_by_attr
+                      when Array
+                        "ids_by_#{order_by_attr.join('_and_')}"
+                      else
+                        "ids_by_#{order_by_attr}"
+                      end
+          query = ViewQuery.new("#{self.class.name.underscore}", view_name, paginate_map_function(order_by_attr, type_tag, 'ruby_class'), nil, nil, view_parameters)
           result = query.query_view!
           return result['rows'].map { |row| row['id'] }, result['total_rows']
         end
 
-        def type_predicate(type, attribute)
-          if type.nil?
+        def type_predicate(type_tag, attribute)
+          if type_tag.nil?
             ""
           else
-            "if(doc.#{attribute} == '#{type}')"
+            "if(doc.#{attribute} == '#{type_tag}')"
           end
         end
 
