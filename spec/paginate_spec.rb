@@ -46,15 +46,59 @@ describe CouchPotato::Persistence::Pagination, 'instantiates objects' do
     CouchPotato::Persistence.Db.delete!
     @hash_id = TestBuild.db.save({:time => '2008-01-02', :revision => "1000"})
     @object_id = TestBuild.create!({:time => '2008-01-01', :revision => "1001"})
-    @result = TestBuild.paginate(1, 1, :order => 'time')
   end
-  
-  it "of the saved class, but not the other" do
-    @result.size.should == 1
+
+  describe "with default instantiation class" do
+    before do
+      @result = TestBuild.paginate(1, 1, :order => 'time')
+    end
+    
+    it "of the saved class, but not the other" do
+      @result.size.should == 1
+    end
+    
+    it "of the saved class, but not the other" do
+      @result.first.class.should == TestBuild
+    end
   end
-  
-  it "of the saved class, but not the other" do
-    @result.first.class.should == TestBuild
+
+  describe "using :class option explicitly" do
+    before do
+      @result = TestBuild.paginate(1, 2, :order => 'time', :class => TestBuild)
+    end
+    
+    it "finds the same one docs" do
+      @result.size.should == 1
+    end
+  end
+
+  describe "using :class option of nil" do
+    before do
+      @result = TestBuild.paginate(1, 2, :order => 'time', :class => nil)
+    end
+    
+    it "finds both type-tagged and untagged docs" do
+      @result.map{|row| row.class}.should == [Hash, Hash]
+      @result.size.should == 2
+    end
+  end
+end
+
+describe TestBuild, "instantiate?" do
+  it "is true if :class option is a class object" do
+    TestBuild.instantiate?(:class => Object).should be_true
+  end
+
+  it "is true if :class option is absent, falling back to default true (using 'self' as value)" do
+    TestBuild.instantiate?({}).should be_true
+  end
+
+  it "is false if :class option present and of value nil" do
+    TestBuild.instantiate?(:class => nil).should be_false
+  end
+
+  it "is false if :class option present and of value :none" do
+    TestBuild.instantiate?(:class => :none).should be_false
   end
 end
 
