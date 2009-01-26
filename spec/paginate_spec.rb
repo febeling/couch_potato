@@ -133,6 +133,24 @@ describe CouchPotato::Persistence::Pagination, 'helper methods' do
     end
   end
 
+  describe "paginate_view_name" do
+    it "generates view name from symbol" do
+      TestBuild.paginate_view_name(:count, 'TestBuild').should == 'ids_by_count'
+    end
+
+    it 'generates view name from array' do
+      TestBuild.paginate_view_name([:count, :name], 'TestBuild').should == 'ids_by_count_and_name'
+    end
+
+    it "generates view name from symbol with custom type tag" do
+      TestBuild.paginate_view_name(:count, 'build').should == 'build_ids_by_count'
+    end
+
+    it "generates view name from symbol with nil type tag" do
+      TestBuild.paginate_view_name(:count, nil).should == 'all_ids_by_count'
+    end
+  end
+
   describe "find_page_ids_ordered_by" do
     it "can get ids of page docs" do
       ids, total = TestBuild.find_page_ids_ordered_by(1, 2, :time, true, TestBuild)

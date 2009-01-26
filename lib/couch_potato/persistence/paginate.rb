@@ -27,15 +27,11 @@ module CouchPotato
 
         def find_page_ids_ordered_by(page, per_page, order_by_attr, descending, type_tag)
           skip = (page - 1) * per_page
-          view_parameters = {:skip => skip, :count => per_page}
+          view_parameters = {:count => per_page}
+          view_parameters[:skip] = skip if skip > 0
           view_parameters[:descending] = descending if descending
-          view_name = case order_by_attr
-                      when Array
-                        "ids_by_#{order_by_attr.join('_and_')}"
-                      else
-                        "ids_by_#{order_by_attr}"
-                      end
-          query = ViewQuery.new("#{self.class.name.underscore}", view_name, paginate_map_function(order_by_attr, type_tag, 'ruby_class'), nil, nil, view_parameters)
+          view_name = paginate_view_name(order_by_attr, type_tag)
+          query = ViewQuery.new("#{self.name.underscore}", view_name, paginate_map_function(order_by_attr, type_tag, 'ruby_class'), nil, nil, view_parameters)
           result = query.query_view!
           return result['rows'].map { |row| row['id'] }, result['total_rows']
         end
@@ -46,6 +42,21 @@ module CouchPotato
           else
             "if(doc.#{attribute} == '#{type_tag}')"
           end
+        end
+
+        def paginate_view_name(order_by_attr, type_tag)
+          if type_tag == self.name
+            ''
+          elsif type_tag.nil?
+            'all_'
+          else
+            type_tag + '_'
+          end + case order_by_attr
+                when Array
+                  "ids_by_#{order_by_attr.join('_and_')}"
+                else
+                  "ids_by_#{order_by_attr}"
+                end
         end
 
         def paginate_map_function(keys, clazz, type_attribute='ruby_class')
