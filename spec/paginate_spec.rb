@@ -153,13 +153,13 @@ describe CouchPotato::Persistence::Pagination, 'helper methods' do
 
   describe "find_page_ids_ordered_by" do
     it "can get ids of page docs" do
-      ids, total = TestBuild.find_page_ids_ordered_by(1, 2, :time, true, TestBuild)
+      ids, total = TestBuild.find_page_ids_ordered_by(1, 2, :time, true, TestBuild.name)
       ids.length.should == 2
       total.should == 3
     end
 
     it "find_page_ids_ordered_by can use more than one oreder key" do
-      ids, total = TestBuild.find_page_ids_ordered_by(1, 2, [:time, :_id], true, TestBuild)
+      ids, total = TestBuild.find_page_ids_ordered_by(1, 2, [:time, :_id], true, TestBuild.name)
       ids.length.should == 2
       total.should == 3
     end
