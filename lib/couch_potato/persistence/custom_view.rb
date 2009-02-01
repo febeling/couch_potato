@@ -9,14 +9,16 @@ module CouchPotato
       module ClassMethods
         
         def view(name, options)
+          properties = options.delete(:properties)
+          key = options.delete(:key)
           (class << self; self; end).instance_eval do
-            if options[:properties]
+            if properties
               define_method name do
-                ViewQuery.new(self.name.underscore, name, map_function(options[:key], options[:properties]), nil, {}, {}).query_view!['rows'].map{|doc| self.new(doc['value'].merge(:_id => doc['id']))}
+                ViewQuery.new(self.name.underscore, name, map_function(key, properties), nil, {}, options).query_view!['rows'].map{|doc| self.new(doc['value'].merge(:_id => doc['id']))}
               end
             else
               define_method name do
-                ViewQuery.new(self.name.underscore, name, map_function(options[:key], options[:properties]), nil, {}, {:include_docs =>  true}).query_view!['rows'].map{|doc| self.new(doc['doc'])}
+                ViewQuery.new(self.name.underscore, name, map_function(key, properties), nil, {}, options.merge({:include_docs =>  true})).query_view!['rows'].map{|doc| self.new(doc['doc'])}
               end
             end
           end
