@@ -9,8 +9,9 @@ class TestBuild
 end
 
 describe CouchPotato::Persistence::Pagination, 'paginate' do
-  before(:each) do
+  before(:all) do
     CouchPotato::Persistence.Db.delete!
+    CouchPotato::Persistence.Db!
     TestBuild.create!({:state => 'success', :time => '2008-01-01', :revision => "1000"})
     TestBuild.create!({:state => 'fail',    :time => '2008-01-02', :revision => "1001"})
     TestBuild.create!({:state => 'success', :time => '2008-01-03', :revision => "1002"})
@@ -42,8 +43,9 @@ describe CouchPotato::Persistence::Pagination, 'paginate' do
 end
 
 describe CouchPotato::Persistence::Pagination, 'instantiates objects' do
-  before(:each) do
+  before(:all) do
     CouchPotato::Persistence.Db.delete!
+    CouchPotato::Persistence.Db!
     @hash_id = TestBuild.db.save({:time => '2008-01-02', :revision => "1000"})
     @object_id = TestBuild.create!({:time => '2008-01-01', :revision => "1001"})
   end
@@ -105,6 +107,7 @@ end
 describe CouchPotato::Persistence::Pagination, 'helper methods' do
   before(:each) do
     CouchPotato::Persistence.Db.delete!
+    CouchPotato::Persistence.Db!
     TestBuild.create!({:state => 'success', :time => '2008-01-01', :revision => "1000"})
     TestBuild.create!({:state => 'fail',    :time => '2008-01-02', :revision => "1001"})
     TestBuild.create!({:state => 'success', :time => '2008-01-03', :revision => "1002"})
