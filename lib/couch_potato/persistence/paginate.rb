@@ -27,7 +27,7 @@ module CouchPotato
 
         def find_page_ids_ordered_by(page, per_page, order_by_attr, descending, type_tag)
           skip = (page - 1) * per_page
-          view_parameters = {:count => per_page}
+          view_parameters = {:limit => per_page}
           view_parameters[:skip] = skip if skip > 0
           view_parameters[:descending] = descending if descending
           view_name = paginate_view_name(order_by_attr, type_tag)

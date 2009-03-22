@@ -18,7 +18,7 @@ describe CouchPotato::Persistence::Pagination, 'paginate' do
   end
 
   it "fetches a first page with length 1" do
-    TestBuild.paginate(1, 1, :order => 'revision').length.should == 1
+      TestBuild.paginate(1, 1, :order => 'revision').length.should == 1
   end
 
   it "fetches a first page with length 1 with keys array" do
